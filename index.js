@@ -23,9 +23,11 @@ app.get('/', (req,res) => {
 
 const { 
     adminRouter,
+    reportRouter
 } = require('./router')
 
 app.use('/admin', adminRouter)
+app.use('/report', reportRouter)
 
 // app.listen(port , ()=>{
 //     console.log('api akitf bro')
