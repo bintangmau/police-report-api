@@ -49,20 +49,79 @@ module.exports = {
                 res.status(200).send(err)
             } 
             req.app.io.emit('input-report-a' , { message : 'sukses' }) 
-            res.status(500).send({ message: 'edit success' })
+            res.status(500).send({ message: 'input success' })
         })
     },
-    tesGetArr: (req, res) => {
-        const sql = `SELECT pelaku FROM reports.a_report;`
+    inputReportB: (req, res) => {
+        const {
+            unitMengetahui,
+            pangkatyangMenerimaLaporan,
+            NRPyangMenerimaLaporan,
+            pangkatMengetahui,
+            NRPMengetahui,
+            nomorLaporanPolisi,
+            pelapor,
+            tempatLahir,
+            tanggalLahir,
+            jenisKelamin,
+            wargaNegara,
+            agama,
+            pekerjaan,
+            alamat,
+            provinsiPelapor,
+            kotaPelapor,
+            kecamataPelapor,
+            kelurahanPelapor,
+            nomorTelpon,
+            waktuKejadian,
+            waktuKejadianJam,
+            tempatKejadian,
+            provinsiKejadian,
+            kotaKejadian,
+            kecamatanKejadian,
+            kelurahanKejadian,
+            apaYangTerjadi,
+            terlapor,
+            korban,
+            saksi,
+            waktuDilaporkan,
+            waktuDilaporkanJam,
+            uraianSingkatKejadian,
+            unit,
+            submit,
+            tim,
+            mengetahui,
+            yangMenerimaLaporan,
+            tindakanYangDiAmbil,
+            tindakPidanaDanPasal,
+            barangBukti,
+            status
+        } = req.body
+        
+        const sql = `INSERT INTO reports.b_report (
+            "unitMengetahui", "pangkatYangMenerimaLaporan", "nrpYangMenerimaLaporan", "pangkatMengetahui", "nrpMengetahui", "nomorLaporanPolisi", pelapor,
+            "tempatLahir", "tanggalLahir", "jenisKelamin", "wargaNegara", agama, pekerjaan, alamat, "provinsiPelapor", "kotaPelapor", "kecamataPelapor", 
+            "kelurahanPelapor", "nomorTelpon", "waktuKejadian", "waktuKejadianJam", "tempatKejadian", "provinsiKejadian", "kotaKejadian", "kecamatanKejadian",
+            "kelurahanKejadian", "apaYangTerjadi", terlapor, korban, saksi, "waktuDilaporkan", "waktuDilaporkanJam", "uraianSingkatKejadian", unit, submit, tim,
+            mengetahui, "yangMenerimaLaporan", "tindakanYangDiambil", "tindakPidanaDanPasal", "barangBukti", status
+        ) VALUES (
+            '${unitMengetahui}', '${pangkatyangMenerimaLaporan}', '${NRPyangMenerimaLaporan}', '${pangkatMengetahui}', '${NRPMengetahui}', '${nomorLaporanPolisi}', 
+            '{${pelapor}}', '${tempatLahir}', '${tanggalLahir}', '${jenisKelamin}', '${wargaNegara}', '${agama}', '${pekerjaan}', '${alamat}', '${provinsiPelapor}', 
+            '${kotaPelapor}', '${kecamataPelapor}', '${kelurahanPelapor}', '${nomorTelpon}', '${waktuKejadian}', '${waktuKejadianJam}', '${tempatKejadian}', '${provinsiKejadian}', 
+            '${kotaKejadian}', '${kecamatanKejadian}', '${kelurahanKejadian}', '${apaYangTerjadi}', '{${terlapor}}', '{${korban}}', '{${saksi}}', '${waktuDilaporkan}', 
+            '${waktuDilaporkanJam}', '${uraianSingkatKejadian}', '${unit}', '${submit}', '${tim}', '${mengetahui}', '${yangMenerimaLaporan}', '{${tindakanYangDiAmbil}}', 
+            '{${tindakPidanaDanPasal}}', '{${barangBukti}}', '${status}' 
+        );`
 
         db.query(sql, (err, results) => {
             if(err) {
                 // console.log(err)
                 res.status(200).send(err)
             } 
-           
-            res.status(500).send(results.rows)
+            req.app.io.emit('input-report-b' , { message : 'sukses' }) 
+            res.status(500).send({ message: 'input success' })
         })
     }
 }
+
 
