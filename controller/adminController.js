@@ -44,7 +44,7 @@ module.exports = {
             if(err) {
                 res.status(200).send(err)
             } 
-
+            req.app.io.emit('input-personil' , { message : 'sukses' }) 
             res.status(500).send({ message: 'input success' })
         })
     },
@@ -84,7 +84,7 @@ module.exports = {
                 // console.log(err)
                 res.status(200).send(err)
             } 
-
+            req.app.io.emit('edit-personil' , { message : 'sukses' }) 
             res.status(500).send({ message: 'edit success' })
         })
     },
@@ -98,7 +98,7 @@ module.exports = {
                 // console.log(err)
                 res.status(200).send(err)
             } 
-
+            req.app.io.emit('edit-personil' , { message : 'sukses' }) 
             res.status(500).send({ message: 'edit success' })
         })
     },
@@ -111,7 +111,7 @@ module.exports = {
                 console.log(err)
                 res.status(200).send(err)
             } 
-
+            req.app.io.emit('delete-personil' , { message : 'sukses' }) 
             res.status(500).send({ message: 'delete success' })
         })
     }
