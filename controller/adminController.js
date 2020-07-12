@@ -1,7 +1,7 @@
 const { db } = require('../helper/database')
 const crypto = require('crypto')
+const secretPass  = require('../helper/secret')
 
-const secret = 'musitodigital'
 
 module.exports = {
     test: (req, res) => {
@@ -9,10 +9,10 @@ module.exports = {
 
         db.query(sql, (err, results) => {
             if(err) {
-                res.status(200).send(err)
+                res.status(500).send(err)
             } 
 
-            res.status(500).send(results.rows)
+            res.status(200).send(results.rows)
         })
     },
     inputPersonil: (req, res) => {
@@ -28,13 +28,10 @@ module.exports = {
             password
         } = req.body
         
-        
-        const passwordEnc = crypto.createHmac('sha256', secret)
+        const passwordEnc = crypto.createHmac('sha256', secretPass)
         .update(password)
         .digest('hex');
         
-        console.log(req.body)
-        console.log(passwordEnc)
         const sql = `INSERT INTO "humanResource"."personil"
                 ("nama", "password", "email",  "role", "jabatan", "pangkat", "nrp", "unit", "submit", "nohp")
                 VALUES
@@ -42,10 +39,11 @@ module.exports = {
 
         db.query(sql, (err, results) => {
             if(err) {
-                res.status(200).send(err)
+                console.log(err)
+                res.status(500).send(err)
             } 
             req.app.io.emit('input-personil' , { message : 'sukses' }) 
-            res.status(500).send({ message: 'input success' })
+            res.status(200).send({ message: 'input success' })
         })
     },
     getDataPersonilEdit: (req, res) => {
@@ -55,10 +53,10 @@ module.exports = {
 
         db.query(sql, (err, results) => {
             if(err) {
-                res.status(200).send(err)
+                res.status(500).send(err)
             } 
 
-            res.status(500).send(results.rows)
+            res.status(200).send(results.rows)
         })
     },
     editPersonil: (req, res) => {
@@ -82,10 +80,10 @@ module.exports = {
         db.query(sql, (err, results) => {
             if(err) {
                 // console.log(err)
-                res.status(200).send(err)
+                res.status(500).send(err)
             } 
             req.app.io.emit('edit-personil' , { message : 'sukses' }) 
-            res.status(500).send({ message: 'edit success' })
+            res.status(200).send({ message: 'edit success' })
         })
     },
     editPersonil2: (req, res) => {
@@ -96,10 +94,10 @@ module.exports = {
         db.query(sql, (err, results) => {
             if(err) {
                 // console.log(err)
-                res.status(200).send(err)
+                res.status(500).send(err)
             } 
             req.app.io.emit('edit-personil' , { message : 'sukses' }) 
-            res.status(500).send({ message: 'edit success' })
+            res.status(200).send({ message: 'edit success' })
         })
     },
     deletePersonil: (req, res) => {
@@ -109,10 +107,10 @@ module.exports = {
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
-                res.status(200).send(err)
+                res.status(500).send(err)
             } 
             req.app.io.emit('delete-personil' , { message : 'sukses' }) 
-            res.status(500).send({ message: 'delete success' })
+            res.status(200).send({ message: 'delete success' })
         })
     }
 }

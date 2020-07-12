@@ -46,10 +46,10 @@ module.exports = {
         db.query(sql, (err, results) => {
             if(err) {
                 // console.log(err)
-                res.status(200).send(err)
+                res.status(500).send(err)
             } 
             req.app.io.emit('input-report-a' , { message : 'sukses' }) 
-            res.status(500).send({ message: 'input success' })
+            res.status(200).send({ message: 'input success' })
         })
     },
     inputReportB: (req, res) => {
@@ -116,10 +116,10 @@ module.exports = {
         db.query(sql, (err, results) => {
             if(err) {
                 // console.log(err)
-                res.status(200).send(err)
+                res.status(500).send(err)
             } 
             req.app.io.emit('input-report-b' , { message : 'sukses' }) 
-            res.status(500).send({ message: 'input success' })
+            res.status(200).send({ message: 'input success' })
         })
     }
 }
