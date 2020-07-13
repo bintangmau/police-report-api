@@ -20,7 +20,7 @@ module.exports = {
             nama,
             jabatan,
             pangkat,
-            NRP,
+            nrp,
             unit,
             submit,
             nomorHp,
@@ -31,11 +31,11 @@ module.exports = {
         const passwordEnc = crypto.createHmac('sha256', secretPass)
         .update(password)
         .digest('hex');
-        
+
         const sql = `INSERT INTO "humanResource"."personil"
                 ("nama", "password", "email",  "role", "jabatan", "pangkat", "nrp", "unit", "submit", "nohp")
                 VALUES
-                ('${nama}', '${passwordEnc}', '${email}', 'user', '${jabatan}', '${pangkat}', '${NRP}', '${unit}', '${submit}', '${nomorHp}');`
+                ('${nama}', '${passwordEnc}', '${email}', 'user', '${jabatan}', '${pangkat}', '${nrp}', '${unit}', '${submit}', '${nomorHp}');`
 
         db.query(sql, (err, results) => {
             if(err) {
