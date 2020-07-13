@@ -1,4 +1,5 @@
 const { db } = require('../helper/database')
+const { transporter } = require('../helper/mailer')
 const crypto = require('crypto')
 const { createJWTToken } = require('../helper/jwt')
 const secretPass = require('../helper/secret')
@@ -37,7 +38,7 @@ module.exports = {
             res.status(200).send(response)
         })
     },
-    cekNrpLogin: (req, res) => {
+    cekNrpInput: (req, res) => {
         const sql = `SELECT COUNT(*) FROM "humanResource".personil
                     WHERE nrp = '${req.params.nrp}';`
 
@@ -54,6 +55,51 @@ module.exports = {
             }
 
             res.status(200).send({ message: countMessage })
+        })
+    },
+    sendEmailLupaPassword: (req, res) => {
+        const token = createJWTToken(req.body.email, { message: 'token' })
+        const mailOptions = {
+            from: 'Jagojek.id',
+            to: `${req.body.email}`,
+            subject: 'Email Verification for Partner',
+            html: `    
+            <center>
+                <div class="container shadow divBesar">
+                    <h1>Verifikasi email anda </h1>
+                    <p>Klik tombol dibawah untuk verifikasi, lalu isi from di halaman yang kami sediakan <br/>Terima kasih atas perhatiannya</p>
+                    <a href="http://localhost:3000/lupa-password/${token}/${req.body.email}/${req.body.nrp}" target="_blank">
+                    <button class="btn btn-primary link">Verifikasi email saya</button>
+                    </a>
+                </div>
+            </center>
+            `
+        }
+
+        transporter.sendMail(mailOptions, (err, info) => {
+            if(err) {
+                console.log(err)
+                return res.status(500).send(err)
+            }
+
+            return res.status(200).send(info)
+        })
+    },
+    changePassword: (req, res) => {
+        const passwordEnc = crypto.createHmac('sha256', secretPass)
+        .update(req.body.password)
+        .digest('hex');
+
+        const sql = `UPDATE "humanResource".personil
+                    SET "password" = '${passwordEnc}'
+                    WHERE email = '${req.body.email}' AND nrp = '${req.body.nrp}';`
+
+        db.query(sql, (err, results) => {
+            if(err) {
+                res.status(500).send(err)
+            } 
+
+            res.status(200).send({ message: 'change password success' })
         })
     }
 }
