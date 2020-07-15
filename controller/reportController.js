@@ -105,7 +105,7 @@ module.exports = {
             mengetahui, "yangMenerimaLaporan", "tindakanYangDiambil", "tindakPidanaDanPasal", "barangBukti", status
         ) VALUES (
             '${unitMengetahui}', '${pangkatyangMenerimaLaporan}', '${NRPyangMenerimaLaporan}', '${pangkatMengetahui}', '${NRPMengetahui}', '${nomorLaporanPolisi}', 
-            '{${pelapor}}', '${tempatLahir}', '${tanggalLahir}', '${jenisKelamin}', '${wargaNegara}', '${agama}', '${pekerjaan}', '${alamat}', '${provinsiPelapor}', 
+            '${pelapor}', '${tempatLahir}', '${tanggalLahir}', '${jenisKelamin}', '${wargaNegara}', '${agama}', '${pekerjaan}', '${alamat}', '${provinsiPelapor}', 
             '${kotaPelapor}', '${kecamataPelapor}', '${kelurahanPelapor}', '${nomorTelpon}', '${waktuKejadian}', '${waktuKejadian}', '${tempatKejadian}', '${provinsiKejadian}', 
             '${kotaKejadian}', '${kecamatanKejadian}', '${kelurahanKejadian}', '${apaYangTerjadi}', '{${terlapor}}', '{${korban}}', '{${saksi}}', '${waktuDilaporkan}', 
             '${waktuDilaporkan}', '${uraianSingkatKejadian}', '${unit}', '${submit}', '${tim}', '${mengetahui}', '${yangMenerimaLaporan}', '{${tindakanYangDiambil}}', 
@@ -119,6 +119,97 @@ module.exports = {
             } 
             req.app.io.emit('input-report-b' , { message : 'sukses' }) 
             res.status(200).send({ message: 'input success' })
+        })
+    },
+    getDataReportAll: (req, res) => {
+        const sql = `SELECT * 
+        FROM reports.a_report;
+        
+        SELECT * 
+        FROM reports.b_report;`
+
+        db.query(sql, (err, results) => {
+            if(err) {
+                res.status(500).send(err)
+            } 
+
+            const data = [...results[0].rows,...results[1].rows]
+            res.status(200).send(data)
+        })
+    },
+    getDataReport: (req, res) => {
+        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, unit, subnit, status
+        FROM reports.a_report ORDER BY "waktuDilaporkan" DESC
+        LIMIT ${req.body.limit} OFFSET ${req.body.offset};`
+
+        db.query(sql, (err, results) => {
+            if(err) {
+                res.status(500).send(err)
+            } 
+
+            const data = results.rows
+            res.status(200).send(data)
+        })
+    },
+    getDataReportB: (req, res) => {
+        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, unit, submit, status
+                    FROM reports.b_report ORDER BY "waktuDilaporkan" DESC
+                    LIMIT ${req.body.limit} OFFSET ${req.body.offset} ;`
+                    
+        db.query(sql, (err, results) => {
+            if(err) {
+                res.status(500).send(err)
+            } 
+
+            const data = results.rows
+            res.status(200).send(data)
+        })
+    },
+    getReportADetails: (req, res) => {
+        const sql = `SELECT kanit, 
+                        kasubmit, 
+                        penyidik,
+                        "nomorLaporanPolisi",
+                        "reportType", 
+                        "waktuDilaporkan", 
+                        "statusLaporan",
+                        pelapor,
+                        "tindakPidanaAtauPasal",
+                        "tempatKejadian",
+                        "waktuKejadian",
+                        "uraianSingkatKejadian"
+                    FROM reports.a_report WHERE id = ${req.params.id};`
+
+        db.query(sql, (err, results) => {
+            if(err) {
+                res.status(500).send(err)
+            } 
+            
+            res.status(200).send(results.rows[0])
+        })
+    },
+    getReportBDetails: (req, res) => {
+        const sql = ` SELECT kanit, 
+                    kasubmit, 
+                    penyidik,
+                    "nomorLaporanPolisi",
+                    "reportType", 
+                    "waktuDilaporkan", 
+                    "statusLaporan",
+                    pelapor,
+                    terlapor,
+                    "tindakPidanaDanPasal",
+                    "tempatKejadian",
+                    "waktuKejadian",
+                    "uraianSingkatKejadian"
+                FROM reports.b_report WHERE id = ${req.params.id};`
+
+        db.query(sql, (err, results) => {
+            if(err) {
+                res.status(500).send(err)
+            } 
+            
+            res.status(200).send(results.rows[0])
         })
     }
 }

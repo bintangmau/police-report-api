@@ -118,7 +118,7 @@ module.exports = {
         const sql = `UPDATE "humanResource".personil
                     SET ${req.body.field} = '${req.body.value}'
                     WHERE id = ${req.body.id};`
-        console.log(req.body)
+    
         db.query(sql, (err, results) => {
             if(err) {
                 res.status(500).send(err)
