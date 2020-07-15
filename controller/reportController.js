@@ -45,7 +45,6 @@ module.exports = {
 
         db.query(sql, (err, results) => {
             if(err) {
-                // console.log(err)
                 res.status(500).send(err)
             } 
             req.app.io.emit('input-report-a' , { message : 'sukses' }) 

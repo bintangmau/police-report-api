@@ -101,5 +101,30 @@ module.exports = {
 
             res.status(200).send({ message: 'change password success' })
         })
+    },
+    getDataProfile: (req, res) => {
+        const sql = `SELECT nama, pangkat, email, jabatan, nrp, unit, submit, nohp, imgurl
+                    FROM "humanResource".personil WHERE id = ${req.params.id};`
+   
+        db.query(sql, (err, results) => {
+            if(err) {
+                res.status(500).send(err)
+            } 
+
+            res.status(200).send(results.rows)
+        })
+    },
+    editDataPersonilOne: (req, res) => {
+        const sql = `UPDATE "humanResource".personil
+                    SET ${req.body.field} = '${req.body.value}'
+                    WHERE id = ${req.body.id};`
+        console.log(req.body)
+        db.query(sql, (err, results) => {
+            if(err) {
+                res.status(500).send(err)
+            } 
+            req.app.io.emit('edit-personil-one' , { message : 'sukses' }) 
+            res.status(200).send({ message: 'edit success' })
+        })
     }
 }
