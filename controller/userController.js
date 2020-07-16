@@ -10,7 +10,7 @@ module.exports = {
         .update(req.body.password)
         .digest('hex');
 
-        const sql =`SELECT id, nama, email, nrp
+        const sql =`SELECT id, nama, email, nrp, jabatan, submit, unit
                     FROM "humanResource".personil
                     WHERE nrp = '${req.body.nrp}' AND password = '${passwordEnc}';`
         
@@ -103,9 +103,10 @@ module.exports = {
         })
     },
     getDataProfile: (req, res) => {
+        const id = req.logedUser.id
         const sql = `SELECT nama, pangkat, email, jabatan, nrp, unit, submit, nohp, imgurl
-                    FROM "humanResource".personil WHERE id = ${req.params.id};`
-   
+                    FROM "humanResource".personil WHERE id = ${id};`
+        
         db.query(sql, (err, results) => {
             if(err) {
                 res.status(500).send(err)
@@ -115,10 +116,11 @@ module.exports = {
         })
     },
     editDataPersonilOne: (req, res) => {
+        const id = req.logedUser.id
         const sql = `UPDATE "humanResource".personil
                     SET ${req.body.field} = '${req.body.value}'
-                    WHERE id = ${req.body.id};`
-    
+                    WHERE id = ${id};`
+        
         db.query(sql, (err, results) => {
             if(err) {
                 res.status(500).send(err)
@@ -126,5 +128,9 @@ module.exports = {
             req.app.io.emit('edit-personil-one' , { message : 'sukses' }) 
             res.status(200).send({ message: 'edit success' })
         })
-    }
+    },
+    dataAuth: (req, res) => {
+        res.json(req.logedUser)
+    } 
+    
 }

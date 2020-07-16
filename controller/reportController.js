@@ -38,8 +38,8 @@ module.exports = {
             alamatsaksi,  "uraianSingkatKejadian", barangbukti, "tindakanYangDiambil", mengetahui, pelapor, nrp, pangkat
         )
         VALUES (
-            '${mengetahuiUnit}', '${NrpPelapor}', '${PangkatPelapor}', '${nomorLaporanPolisi}', '${waktuKejadian}', '${waktuKejadian}', '${tempatKejadian}', '${provinsi}',
-            '${kota}', '${kecamatan}', '${kelurahan}', '${apaYangTerjadi}', '{${pelaku}}', '{${korban}}', '${waktuDilaporkan}', '${waktuDilaporkan}', '{${tindakPidanaAtauPasal}}', 
+            '${mengetahuiUnit}', '${NrpPelapor}', '${PangkatPelapor}', '${nomorLaporanPolisi}', '${waktuKejadian}', '${waktuKejadianJam}', '${tempatKejadian}', '${provinsi}',
+            '${kota}', '${kecamatan}', '${kelurahan}', '${apaYangTerjadi}', '{${pelaku}}', '{${korban}}', '${waktuDilaporkan}', '${waktuDilaporkanJam}', '{${tindakPidanaAtauPasal}}', 
             '${sumir}', '{${namaSaksi}}', '{${alamatSaksi}}', '${uraianSingkatKejadian}', '{${barangBukti}}', '{${tindakanYangDiambil}}', '${mengetahui}', '${pelapor}', 
             '${nrp}', '${pangkat}');`
 
@@ -210,6 +210,44 @@ module.exports = {
             } 
             
             res.status(200).send(results.rows[0])
+        })
+    },
+    searchReportA: (req, res) => {
+        const sql = `SELECT id, "nomorLaporanPolisi", "uraianSingkatKejadian", "apaYangTerjadi"
+                    FROM reports.a_report 
+                    WHERE LOWER("apaYangTerjadi") LIKE LOWER('%${req.query.keyword}%')
+                    OR LOWER("nomorLaporanPolisi") LIKE LOWER('%${req.query.keyword}%')
+                    OR LOWER("tempatKejadian") LIKE LOWER('%${req.query.keyword}%')
+                    OR LOWER(pelapor) LIKE LOWER('%${req.query.keyword}%')
+                    OR LOWER("uraianSingkatKejadian") LIKE LOWER('%${req.query.keyword}%')
+                    OR LOWER("apaYangTerjadi") LIKE LOWER('%${req.query.keyword}%');`
+
+        db.query(sql, (err, results) => {
+            if(err) {
+                console.log(err)
+                res.status(500).send(err)
+            } 
+
+            res.status(200).send(results.rows)
+        })
+    },
+    searchReportB: (req, res) => {
+        const sql = `SELECT id, "nomorLaporanPolisi", "uraianSingkatKejadian", "apaYangTerjadi"
+                    FROM reports.b_report 
+                    WHERE LOWER("apaYangTerjadi") LIKE LOWER('%${req.query.keyword}%')
+                    OR LOWER("nomorLaporanPolisi") LIKE LOWER('%${req.query.keyword}%')
+                    OR LOWER("tempatKejadian") LIKE LOWER('%${req.query.keyword}%')
+                    OR LOWER(pelapor) LIKE LOWER('%${req.query.keyword}%')
+                    OR LOWER("uraianSingkatKejadian") LIKE LOWER('%${req.query.keyword}%')
+                    OR LOWER("apaYangTerjadi") LIKE LOWER('%${req.query.keyword}%');`
+
+        db.query(sql, (err, results) => {
+            if(err) {
+                console.log(err)
+                res.status(500).send(err)
+            } 
+
+            res.status(200).send(results.rows)
         })
     }
 }

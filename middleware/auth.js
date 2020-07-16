@@ -1,0 +1,20 @@
+const jwt = require('jsonwebtoken')
+function verifyedToken(token) {
+    return jwt.verify(token, "musitodigital")
+}
+
+function authentication(req, res, next) {
+    try {
+        let token = req.headers.token
+        let decodeToken = verifyedToken(token)
+        // console.log(decodeToken , ' <<< DECODE TOKEN')
+        req.logedUser = decodeToken
+        next()
+    } catch (err) {
+        res.status(403).send({err, message: 'NOT-AUTHORIZED'})
+    }
+}
+
+module.exports = {
+    authentication
+}
