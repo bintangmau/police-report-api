@@ -11,7 +11,7 @@ function authentication(req, res, next) {
         req.logedUser = decodeToken
         next()
     } catch (err) {
-        res.status(403).send({err, message: 'NOT-AUTHORIZED'})
+        res.status(403).send({message: 'NOT-AUTHORIZED'})
     }
 }
 

@@ -31,7 +31,7 @@ module.exports = {
             pangkat,
             nrp 
         } = req.body
-
+  
         const sql = `INSERT INTO "reports"."a_report"
         ( "mengetahuiUnit", "nrpPelapor", "pangkatPelapor", "nomorLaporanPolisi", "waktuKejadian", "waktuKejadianJam", "tempatKejadian", "provinsi", "kota", 
             "kecamatan", kelurahan, "apaYangTerjadi", pelaku, korban, "waktuDilaporkan", "waktuDilaporkanJam", "tindakPidanaAtauPasal", sumir, namasaksi, 	
@@ -96,7 +96,7 @@ module.exports = {
             barangBukti,
             status
         } = req.body
-        
+
         const sql = `INSERT INTO reports.b_report (
             "unitMengetahui", "pangkatYangMenerimaLaporan", "nrpYangMenerimaLaporan", "pangkatMengetahui", "nrpMengetahui", "nomorLaporanPolisi", pelapor,
             "tempatLahir", "tanggalLahir", "jenisKelamin", "wargaNegara", agama, pekerjaan, alamat, "provinsiPelapor", "kotaPelapor", "kecamataPelapor", 

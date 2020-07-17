@@ -27,7 +27,7 @@ module.exports = {
             email,
             password
         } = req.body
-        
+ 
         const passwordEnc = crypto.createHmac('sha256', secretPass)
         .update(password)
         .digest('hex');
@@ -155,6 +155,18 @@ module.exports = {
             } 
 
             res.status(200).send(results.rows)
+        })
+    },
+    addFieldPersonil: (req, res) => {
+        const sql = `INSERT INTO "public".${req.body.field}
+                    (${req.body.field}) VALUES ('${req.body.value}');`
+
+        db.query(sql, (err, results) => {
+            if(err) {
+                res.status(500).send(err)
+            } 
+            req.app.io.emit(`input-new-${req.body.field}` , { message : 'success' }) 
+            res.status(200).send({ message: `input ${req.body.field} success`})
         })
     }
 }
