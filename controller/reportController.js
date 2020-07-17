@@ -139,9 +139,10 @@ module.exports = {
     },
     getDataReport: (req, res) => {
         const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, unit, subnit, status
-        FROM reports.a_report ORDER BY "waktuDilaporkan" DESC
-        LIMIT ${req.body.limit} OFFSET ${req.body.offset};`
+        FROM reports.a_report ORDER BY "waktuDilaporkan" DESC;`
         
+        // `LIMIT ${req.body.limit} OFFSET ${req.body.offset};`
+
         db.query(sql, (err, results) => {
             if(err) {
                 res.status(500).send(err)
@@ -153,8 +154,9 @@ module.exports = {
     },
     getDataReportB: (req, res) => {
         const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, unit, submit, status
-                    FROM reports.b_report ORDER BY "waktuDilaporkan" DESC
-                    LIMIT ${req.body.limit} OFFSET ${req.body.offset} ;`
+                    FROM reports.b_report ORDER BY "waktuDilaporkan" DESC;`
+
+        // `LIMIT ${req.body.limit} OFFSET ${req.body.offset} ;`
                     
         db.query(sql, (err, results) => {
             if(err) {
