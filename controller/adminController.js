@@ -112,5 +112,49 @@ module.exports = {
             req.app.io.emit('delete-personil' , { message : 'sukses' }) 
             res.status(200).send({ message: 'delete success' })
         })
+    },
+    getDataJabatan: (req, res) => {
+        const sql = `SELECT * FROM "public".jabatan;`
+
+        db.query(sql, (err, results) => {
+            if(err) {
+                res.status(500).send(err)
+            } 
+
+            res.status(200).send(results.rows)
+        })
+    },
+    getDataPangkat: (req, res) => {
+        const sql = `SELECT * FROM "public".pangkat;`
+
+        db.query(sql, (err, results) => {
+            if(err) {
+                res.status(500).send(err)
+            } 
+
+            res.status(200).send(results.rows)
+        })
+    },
+    getDataUnit: (req, res) => {
+        const sql = `SELECT * FROM "public".unit;`
+
+        db.query(sql, (err, results) => {
+            if(err) {
+                res.status(500).send(err)
+            } 
+
+            res.status(200).send(results.rows)
+        })
+    },
+    getDataSubnit: (req, res) => {
+        const sql = `SELECT * FROM "public".subnit;`
+
+        db.query(sql, (err, results) => {
+            if(err) {
+                res.status(500).send(err)
+            } 
+
+            res.status(200).send(results.rows)
+        })
     }
 }

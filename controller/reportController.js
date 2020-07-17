@@ -96,7 +96,7 @@ module.exports = {
             barangBukti,
             status
         } = req.body
-
+        
         const sql = `INSERT INTO reports.b_report (
             "unitMengetahui", "pangkatYangMenerimaLaporan", "nrpYangMenerimaLaporan", "pangkatMengetahui", "nrpMengetahui", "nomorLaporanPolisi", pelapor,
             "tempatLahir", "tanggalLahir", "jenisKelamin", "wargaNegara", agama, pekerjaan, alamat, "provinsiPelapor", "kotaPelapor", "kecamataPelapor", 
@@ -106,9 +106,9 @@ module.exports = {
         ) VALUES (
             '${unitMengetahui}', '${pangkatyangMenerimaLaporan}', '${NRPyangMenerimaLaporan}', '${pangkatMengetahui}', '${NRPMengetahui}', '${nomorLaporanPolisi}', 
             '${pelapor}', '${tempatLahir}', '${tanggalLahir}', '${jenisKelamin}', '${wargaNegara}', '${agama}', '${pekerjaan}', '${alamat}', '${provinsiPelapor}', 
-            '${kotaPelapor}', '${kecamataPelapor}', '${kelurahanPelapor}', '${nomorTelpon}', '${waktuKejadian}', '${waktuKejadian}', '${tempatKejadian}', '${provinsiKejadian}', 
+            '${kotaPelapor}', '${kecamataPelapor}', '${kelurahanPelapor}', '${nomorTelpon}', '${waktuKejadian}', '${waktuKejadianJam}', '${tempatKejadian}', '${provinsiKejadian}', 
             '${kotaKejadian}', '${kecamatanKejadian}', '${kelurahanKejadian}', '${apaYangTerjadi}', '{${terlapor}}', '{${korban}}', '{${saksi}}', '${waktuDilaporkan}', 
-            '${waktuDilaporkan}', '${uraianSingkatKejadian}', '${unit}', '${submit}', '${tim}', '${mengetahui}', '${yangMenerimaLaporan}', '{${tindakanYangDiambil}}', 
+            '${waktuDilaporkanJam}', '${uraianSingkatKejadian}', '${unit}', '${submit}', '${tim}', '${mengetahui}', '${yangMenerimaLaporan}', '{${tindakanYangDiambil}}', 
             '{${tindakPidanaDanPasal}}', '{${barangBukti}}', '${status}' 
         );`
 
@@ -141,7 +141,7 @@ module.exports = {
         const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, unit, subnit, status
         FROM reports.a_report ORDER BY "waktuDilaporkan" DESC
         LIMIT ${req.body.limit} OFFSET ${req.body.offset};`
-
+        
         db.query(sql, (err, results) => {
             if(err) {
                 res.status(500).send(err)
