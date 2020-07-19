@@ -10,8 +10,16 @@ module.exports = {
         .update(req.body.password)
         .digest('hex');
 
-        const sql =`SELECT id, nama, email, nrp, jabatan, submit, unit
-                    FROM "humanResource".personil
+        const sql =`SELECT id, nama, email, nrp, j.jabatan, s.subnit, u.unit, p.pangkat
+                    FROM "humanResource".personil pr
+                    JOIN "public".jabatan j
+                    ON pr.jabatan = j."idJabatan"
+                    JOIN "public".pangkat p
+                    ON pr.pangkat = p."idPangkat"
+                    JOIN "public".unit u
+                    ON pr.unit = u."idUnit"
+                    JOIN "public".subnit s
+                    ON pr.submit = s."idSubnit"
                     WHERE nrp = '${req.body.nrp}' AND password = '${passwordEnc}';`
         
         db.query(sql, (err, results) => {
@@ -104,14 +112,23 @@ module.exports = {
     },
     getDataProfile: (req, res) => {
         const id = req.logedUser.id
-        const sql = `SELECT nama, pangkat, email, jabatan, nrp, unit, submit, nohp, imgurl
-                    FROM "humanResource".personil WHERE id = ${id};`
-        
+        const sql = `SELECT nama, p.pangkat, email, j.jabatan, nrp, u.unit, s.subnit, nohp, imgurl
+                    FROM "humanResource".personil pr
+                    JOIN "public".jabatan j
+                    ON pr.jabatan = j."idJabatan"
+                    JOIN "public".pangkat p
+                    ON pr.pangkat = p."idPangkat"
+                    JOIN "public".unit u
+                    ON pr.unit = u."idUnit"
+                    JOIN "public".subnit s
+                    ON pr.submit = s."idSubnit"
+                    WHERE pr.id = ${id};`
+
         db.query(sql, (err, results) => {
             if(err) {
                 res.status(500).send(err)
             } 
-
+            console.log(results.rows)
             res.status(200).send(results.rows)
         })
     },

@@ -27,7 +27,7 @@ module.exports = {
             email,
             password
         } = req.body
- 
+      
         const passwordEnc = crypto.createHmac('sha256', secretPass)
         .update(password)
         .digest('hex');
@@ -35,7 +35,7 @@ module.exports = {
         const sql = `INSERT INTO "humanResource"."personil"
                 ("nama", "password", "email",  "role", "jabatan", "pangkat", "nrp", "unit", "submit", "nohp")
                 VALUES
-                ('${nama}', '${passwordEnc}', '${email}', 'user', '${jabatan}', '${pangkat}', '${nrp}', '${unit}', '${submit}', '${nomorHp}');`
+                ('${nama}', '${passwordEnc}', '${email}', 'user', ${jabatan}, ${pangkat}, '${nrp}', ${unit}, ${submit}, '${nomorHp}');`
 
         db.query(sql, (err, results) => {
             if(err) {
@@ -166,6 +166,18 @@ module.exports = {
                 res.status(500).send(err)
             } 
             req.app.io.emit(`input-new-${req.body.field}` , { message : 'success' }) 
+            res.status(200).send({ message: `input ${req.body.field} success`})
+        })
+    },
+    deleteFieldPersonil: (req, res) => {
+        const sql = `DELETE FROM "public".${req.body.field}
+                    WHERE "${req.body.idName}" = ${req.body.id};`
+        console.log(req.body)
+        db.query(sql, (err, results) => {
+            if(err) {
+                res.status(500).send(err)
+            } 
+            req.app.io.emit(`delete-field-${req.body.field}` , { message : 'success' }) 
             res.status(200).send({ message: `input ${req.body.field} success`})
         })
     }
