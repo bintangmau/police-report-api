@@ -35,13 +35,13 @@ module.exports = {
         const sql = `INSERT INTO "reports"."a_report"
         ( "mengetahuiUnit", "nrpPelapor", "pangkatPelapor", "nomorLaporanPolisi", "waktuKejadian", "waktuKejadianJam", "tempatKejadian", "provinsi", "kota", 
             "kecamatan", kelurahan, "apaYangTerjadi", pelaku, korban, "waktuDilaporkan", "waktuDilaporkanJam", "tindakPidanaAtauPasal", sumir, namasaksi, 	
-            alamatsaksi,  "uraianSingkatKejadian", barangbukti, "tindakanYangDiambil", mengetahui, pelapor, nrp, pangkat
+            alamatsaksi,  "uraianSingkatKejadian", barangbukti, "tindakanYangDiambil", mengetahui, pelapor, nrp, pangkat, "statusReport"
         )
         VALUES (
             '${mengetahuiUnit}', '${NrpPelapor}', '${PangkatPelapor}', '${nomorLaporanPolisi}', '${waktuKejadian}', '${waktuKejadianJam}', '${tempatKejadian}', '${provinsi}',
             '${kota}', '${kecamatan}', '${kelurahan}', '${apaYangTerjadi}', '{${pelaku}}', '{${korban}}', '${waktuDilaporkan}', '${waktuDilaporkanJam}', '{${tindakPidanaAtauPasal}}', 
             '${sumir}', '{${namaSaksi}}', '{${alamatSaksi}}', '${uraianSingkatKejadian}', '{${barangBukti}}', '{${tindakanYangDiambil}}', '${mengetahui}', '${pelapor}', 
-            '${nrp}', '${pangkat}');`
+            '${nrp}', '${pangkat}', 0);`
 
         db.query(sql, (err, results) => {
             if(err) {
@@ -121,25 +121,23 @@ module.exports = {
             res.status(200).send({ message: 'input success' })
         })
     },
-    getDataReportAll: (req, res) => {
-        const sql = `SELECT * 
-        FROM reports.a_report;
-        
-        SELECT * 
-        FROM reports.b_report;`
-
-        db.query(sql, (err, results) => {
-            if(err) {
-                res.status(500).send(err)
-            } 
-
-            const data = [...results[0].rows,...results[1].rows]
-            res.status(200).send(data)
-        })
-    },
     getDataReport: (req, res) => {
-        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, unit, subnit, status
-        FROM reports.a_report ORDER BY "waktuDilaporkan" DESC;`
+        const {
+            jabatan, unit, idUnit
+        } = req.logedUser
+        let newQuery = ``
+        let unitField = `, unit`
+        if(jabatan === "KANIT") {
+            newQuery = `JOIN "public".unit u
+                        ON r.unit = u."idUnit"
+                        WHERE r.unit = ${idUnit}`
+            unitField = `, u.unit`
+        } 
+
+        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik${unitField}, subnit, status
+        FROM reports.a_report r 
+				${newQuery}
+				ORDER BY "waktuDilaporkan" DESC;`
         
         // `LIMIT ${req.body.limit} OFFSET ${req.body.offset};`
 
@@ -173,7 +171,7 @@ module.exports = {
         } = req.logedUser
         
         let sql1 = ""
-   
+
         if(jabatan === 'WAKASAT') {
             sql1 = `SELECT id, nama, p.jabatan, unit, submit
                     FROM "humanResource".personil pr
@@ -229,7 +227,7 @@ module.exports = {
                 dataMember: results[1].rows,
                 jabatan 
             }
-            console.log(req.params)
+        
             res.status(200).send(objData)
         })
     },
@@ -314,7 +312,12 @@ module.exports = {
                             "uraianSingkatKejadian"
                         FROM reports.a_report WHERE id = ${id};
                         
-                        SELECT id, nama FROM "humanResource".personil WHERE jabatan = 'KANIT';`
+                        SELECT id, nama
+                        FROM "humanResource".personil pr
+                        JOIN "public".jabatan j
+                        ON pr.jabatan = j."idJabatan"
+                        WHERE pr.jabatan = 5;`
+
       
         if(id == 33) {
             db.query(sqlDetails, (err, results) => {

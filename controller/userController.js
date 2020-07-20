@@ -10,8 +10,8 @@ module.exports = {
         .update(req.body.password)
         .digest('hex');
 
-        const sql =`SELECT id, nama, email, nrp, j.jabatan, s.subnit, u.unit, p.pangkat
-                    FROM "humanResource".personil pr
+        const sql =`SELECT id, nama, email, nrp, j.jabatan, s.subnit, u.unit, u."idUnit", p.pangkat
+                    FROM "humanResource".personil pr 
                     JOIN "public".jabatan j
                     ON pr.jabatan = j."idJabatan"
                     JOIN "public".pangkat p
@@ -21,9 +21,10 @@ module.exports = {
                     JOIN "public".subnit s
                     ON pr.submit = s."idSubnit"
                     WHERE nrp = '${req.body.nrp}' AND password = '${passwordEnc}';`
-        
+   
         db.query(sql, (err, results) => {
             if(err) {
+                console.log(err)
                 res.status(500).send(err)
             } 
             var tokens = ''
@@ -43,6 +44,7 @@ module.exports = {
                 token: tokens,
                 message: message
             }
+          
             res.status(200).send(response)
         })
     },
@@ -128,7 +130,6 @@ module.exports = {
             if(err) {
                 res.status(500).send(err)
             } 
-            console.log(results.rows)
             res.status(200).send(results.rows)
         })
     },
