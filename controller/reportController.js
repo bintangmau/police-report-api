@@ -29,7 +29,9 @@ module.exports = {
             mengetahui,
             pelapor,    
             pangkat,
-            nrp 
+            nrp ,
+            unit,
+            subnit
         } = req.body
         
         const sql = `INSERT INTO "reports"."a_report"
@@ -41,7 +43,7 @@ module.exports = {
             '${mengetahuiUnit}', '${NrpPelapor}', '${PangkatPelapor}', '${nomorLaporanPolisi}', '${waktuKejadian}', '${waktuKejadianJam}', '${tempatKejadian}', '${provinsi}',
             '${kota}', '${kecamatan}', '${kelurahan}', '${apaYangTerjadi}', '{${pelaku}}', '{${korban}}', '${waktuDilaporkan}', '${waktuDilaporkanJam}', '{${tindakPidanaAtauPasal}}', 
             '${sumir}', '{${namaSaksi}}', '{${alamatSaksi}}', '${uraianSingkatKejadian}', '{${barangBukti}}', '{${tindakanYangDiambil}}', '${mengetahui}', '${pelapor}', 
-            '${nrp}', '${pangkat}', 0);`
+            '${nrp}', '${pangkat}', 0, 0, 0);`
 
         db.query(sql, (err, results) => {
             if(err) {
@@ -123,30 +125,35 @@ module.exports = {
     },
     getDataReport: (req, res) => {
         const {
-            jabatan, unit, idUnit
+            jabatan, unit, idUnit, idSubnit
         } = req.logedUser
+    
         let newQuery = ``
-        let unitField = `, unit`
+  
         if(jabatan === "KANIT") {
-            newQuery = `JOIN "public".unit u
-                        ON r.unit = u."idUnit"
-                        WHERE r.unit = ${idUnit}`
-            unitField = `, u.unit`
-        } 
+            newQuery = `WHERE r.unit = ${idUnit}`
+        } else if(jabatan === 'KASUBNIT') {
+            newQuery = `WHERE r.unit = ${idUnit} AND r.subnit = ${idSubnit}`
+        }
 
-        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik${unitField}, subnit, status
-        FROM reports.a_report r 
-				${newQuery}
-				ORDER BY "waktuDilaporkan" DESC;`
-        
+        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, u.unit, status, s.subnit 
+                    FROM reports.a_report r
+                    JOIN "public".unit u
+                    ON r.unit = u."idUnit"
+                    JOIN "public".subnit s
+                    ON r.subnit = s."idSubnit"
+                    ${newQuery}
+                    ORDER BY "waktuDilaporkan" DESC;`
+    
         // `LIMIT ${req.body.limit} OFFSET ${req.body.offset};`
-
+     
         db.query(sql, (err, results) => {
             if(err) {
                 res.status(500).send(err)
             } 
-
+       
             const data = results.rows
+       
             res.status(200).send(data)
         })
     },
@@ -167,27 +174,20 @@ module.exports = {
     },
     getReportADetails: (req, res) => {
         const {
-            id, nama, jabatan, pangkat, unit, subnit
+            id, nama, jabatan, pangkat, unit, subnit, idUnit
         } = req.logedUser
-        
-        let sql1 = ""
         console.log(jabatan)
+        let sql1 = ""
         if(jabatan === 'WAKASAT') {
-            sql1 = `SELECT id, nama, p.jabatan, unit
-                    FROM "humanResource".personil pr
-                    JOIN "public".jabatan p
-                    ON pr.jabatan = p."idJabatan"
-                    WHERE p.jabatan = 'KANIT';`
-        } else if(jabatan === 'KANIT') {
-            sql1 = `SELECT id, nama, p.jabatan, u.unit, pr.unit AS idUnit
+            sql1 = `SELECT id, nama, p.jabatan, u.unit, pr.unit AS "idUnit"
                     FROM "humanResource".personil pr
                     JOIN "public".jabatan p
                     ON pr.jabatan = p."idJabatan"
                     JOIN "public".unit u
                     ON pr.unit = u."idUnit"
-                    WHERE p.jabatan = 'KASUBNIT' AND u.unit = '${unit}';`
-        } else if (jabatan === "KASUBNIT" ) {
-            sql1 = `SELECT id, nama, p.jabatan, u.unit, pr.unit AS idUnit, s.subnit AS submit, pr.submit AS idSubmit
+                    WHERE p.jabatan = 'KANIT';`
+        } else if(jabatan === 'KANIT') {
+            sql1 = `SELECT id, nama, p.jabatan, u.unit, pr.unit AS "idUnit", s.subnit AS submit, pr.submit AS "idSubmit"
                     FROM "humanResource".personil pr
                     JOIN "public".jabatan p
                     ON pr.jabatan = p."idJabatan"
@@ -195,11 +195,23 @@ module.exports = {
                     ON pr.unit = u."idUnit"
                     JOIN "public".subnit s
                     ON pr.submit = s."idSubnit"
-                    WHERE p.jabatan = 'PENYIDIK' AND s.subnit = '${subnit}';`
+                    WHERE p.jabatan = 'KASUBNIT' AND pr.unit = ${idUnit};`
+        } else if (jabatan === "KASUBNIT" ) {
+            sql1 = `SELECT id, nama, j.jabatan, p.pangkat, u.unit, pr.unit AS idUnit, s.subnit AS submit, pr.submit AS idSubmit
+                    FROM "humanResource".personil pr
+                    JOIN "public".jabatan j
+                    ON pr.jabatan = j."idJabatan"
+                    JOIN "public".pangkat p
+                    ON pr.pangkat = p."idPangkat"
+                    JOIN "public".unit u
+                    ON pr.unit = u."idUnit"
+                    JOIN "public".subnit s
+                    ON pr.submit = s."idSubnit"
+                    WHERE j.jabatan = 'PENYIDIK' AND s.subnit = '${subnit}';`
         }
       
         const sql = `SELECT kanit, 
-                        kasubmit, 
+                        subnit, 
                         penyidik,
                         "nomorLaporanPolisi",
                         "reportType", 
@@ -226,7 +238,7 @@ module.exports = {
                 dataMember: results[1].rows,
                 jabatan 
             }
-        
+           
             res.status(200).send(objData)
         })
     },
@@ -348,21 +360,25 @@ module.exports = {
         } = req.body
         
         let field = ""
-        console.log(value)
+        var data = ''
         if(jabatan === 'WAKASAT') {
             field = "unit"
+            data = value
         } else if(jabatan === 'KANIT') {
-           field = "submit"
+           field = "subnit"
+           data = value
         } else if (jabatan === "KASUBNIT" ) {
             field = "penyidik"
+            data = `{${value}}`
         }
-
-        const sql = `UPDATE reports.a_report
-                    SET ${field} = '${value}'
+      
+        const sql = `UPDATE "reports".a_report
+                    SET ${field} = '${data}'
                     WHERE "id" = ${idReport};`
 
         db.query(sql, (err, results) => {
             if(err) {
+                console.log(err)
                 res.status(500).send(err)
             } 
 

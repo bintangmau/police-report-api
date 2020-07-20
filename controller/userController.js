@@ -9,8 +9,8 @@ module.exports = {
         const passwordEnc = crypto.createHmac('sha256', secretPass)
         .update(req.body.password)
         .digest('hex');
-
-        const sql =`SELECT id, nama, email, nrp, j.jabatan, s.subnit, u.unit, u."idUnit", p.pangkat
+        
+        const sql =`SELECT id, nama, email, nrp, j.jabatan, s.subnit, s."idSubnit", u.unit, u."idUnit", p.pangkat
                     FROM "humanResource".personil pr 
                     JOIN "public".jabatan j
                     ON pr.jabatan = j."idJabatan"
