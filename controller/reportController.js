@@ -171,25 +171,23 @@ module.exports = {
         } = req.logedUser
         
         let sql1 = ""
-
+        console.log(jabatan)
         if(jabatan === 'WAKASAT') {
-            sql1 = `SELECT id, nama, p.jabatan, unit, submit
+            sql1 = `SELECT id, nama, p.jabatan, unit
                     FROM "humanResource".personil pr
                     JOIN "public".jabatan p
                     ON pr.jabatan = p."idJabatan"
                     WHERE p.jabatan = 'KANIT';`
         } else if(jabatan === 'KANIT') {
-            sql1 = `SELECT id, nama, p.jabatan, u.unit, s.subnit AS submit
+            sql1 = `SELECT id, nama, p.jabatan, u.unit, pr.unit AS idUnit
                     FROM "humanResource".personil pr
                     JOIN "public".jabatan p
                     ON pr.jabatan = p."idJabatan"
                     JOIN "public".unit u
                     ON pr.unit = u."idUnit"
-                    JOIN "public".subnit s
-                    ON pr.submit = s."idSubnit"
                     WHERE p.jabatan = 'KASUBNIT' AND u.unit = '${unit}';`
         } else if (jabatan === "KASUBNIT" ) {
-            sql1 = `SELECT id, nama, p.jabatan, u.unit, s.subnit AS submit
+            sql1 = `SELECT id, nama, p.jabatan, u.unit, pr.unit AS idUnit, s.subnit AS submit, pr.submit AS idSubmit
                     FROM "humanResource".personil pr
                     JOIN "public".jabatan p
                     ON pr.jabatan = p."idJabatan"
@@ -197,7 +195,7 @@ module.exports = {
                     ON pr.unit = u."idUnit"
                     JOIN "public".subnit s
                     ON pr.submit = s."idSubnit"
-                    WHERE p.jabatan = 'PENYIDIK' AND s.subnit = '${unit}';`
+                    WHERE p.jabatan = 'PENYIDIK' AND s.subnit = '${subnit}';`
         }
       
         const sql = `SELECT kanit, 
@@ -216,6 +214,7 @@ module.exports = {
             FROM reports.a_report WHERE id = ${req.params.id};
 
             ${sql1} ;`
+
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
@@ -312,10 +311,12 @@ module.exports = {
                             "uraianSingkatKejadian"
                         FROM reports.a_report WHERE id = ${id};
                         
-                        SELECT id, nama
+                        SELECT id, nama, u."idUnit"
                         FROM "humanResource".personil pr
                         JOIN "public".jabatan j
                         ON pr.jabatan = j."idJabatan"
+                        JOIN "public".unit u
+                        ON pr.unit = u."idUnit"
                         WHERE pr.jabatan = 5;`
 
       
@@ -347,7 +348,7 @@ module.exports = {
         } = req.body
         
         let field = ""
-   
+        console.log(value)
         if(jabatan === 'WAKASAT') {
             field = "unit"
         } else if(jabatan === 'KANIT') {
@@ -365,7 +366,7 @@ module.exports = {
                 res.status(500).send(err)
             } 
 
-            req.app.io.emit('update-report-status-disposisi' , { message : 'sukses' }) 
+            req.app.io.emit('input-report-a' , { message : 'sukses' }) 
             res.status(200).send({ message: 'unit changed' })
         })
     }
