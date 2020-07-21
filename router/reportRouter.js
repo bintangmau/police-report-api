@@ -15,5 +15,6 @@ router.get('/search-report-a', reportController.searchReportA)
 router.get('/search-report-b', reportController.searchReportB)
 router.get('/get-data-disposisi-details', authentication, reportController.getDataDisposisiDetails)
 router.post('/update-report-status-disposisi', authentication, updateReportStatusDisposisi)
+router.post('/update-perkembangan-laporan', authentication, reportController.updatePerkembanganLaporan)
 
 module.exports = router

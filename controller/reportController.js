@@ -99,7 +99,7 @@ module.exports = {
             barangBukti,
             status
         } = req.body
-
+      
         const sql = `INSERT INTO reports.b_report (
             "unitMengetahui", "pangkatYangMenerimaLaporan", "nrpYangMenerimaLaporan", "pangkatMengetahui", "nrpMengetahui", "nomorLaporanPolisi", pelapor,
             "tempatLahir", "tanggalLahir", "jenisKelamin", "wargaNegara", agama, pekerjaan, alamat, "provinsiPelapor", "kotaPelapor", "kecamatanPelapor", 
@@ -117,7 +117,6 @@ module.exports = {
 
         db.query(sql, (err, results) => {
             if(err) {
-                console.log(err)
                 res.status(500).send(err)
             } 
             req.app.io.emit('input-report-b' , { message : 'sukses' }) 
@@ -193,7 +192,7 @@ module.exports = {
         const {
             jabatan, subnit, idUnit
         } = req.logedUser
-    
+        console.log(req.logedUser)
         let sql1 = ""
         let dbField = `kanit, 
                         subnit, 
@@ -210,7 +209,6 @@ module.exports = {
                         "unit"`
 
         if(jabatan === 'WAKASAT') {
-            dbField = ``
             sql1 = `SELECT id, nama, p.jabatan, u.unit, pr.unit AS "idUnit"
                     FROM "humanResource".personil pr
                     JOIN "public".jabatan p
@@ -244,10 +242,11 @@ module.exports = {
             dbField = "*"
         }
 
-        const sql = `SELECT ${dbField}
+        const sql = `SELECT *
             FROM reports.a_report WHERE id = ${req.params.id};
 
             ${sql1}`
+      
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
@@ -265,7 +264,7 @@ module.exports = {
                     jabatan 
                 }
             }
-       
+     
             res.status(200).send(objData)
         })
     },
@@ -416,6 +415,24 @@ module.exports = {
 
             req.app.io.emit('input-report-a' , { message : 'sukses' }) 
             res.status(200).send({ message: 'unit changed' })
+        })
+    },
+    updatePerkembanganLaporan: (req, res) => {
+        const {
+            value, idLaporan
+        } = req.body
+  
+        const sql = `UPDATE reports.a_report 
+        SET "perkembanganLaporan" = '${value}'
+        WHERE id = ${idLaporan};`
+
+        db.query(sql, (err, results) => {
+            if(err) {
+                console.log(err)
+                res.status(500).send(err)
+            } 
+
+            res.status(200).send({ message: "Perkembangan berhasil diupdate" })
         })
     }
 }
