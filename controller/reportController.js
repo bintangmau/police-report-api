@@ -267,7 +267,7 @@ module.exports = {
             FROM reports.a_report WHERE id = ${req.params.id};
 
             ${sql1}`
-        console.log(sql)
+      
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
@@ -475,7 +475,8 @@ module.exports = {
                 console.log(err)
                 res.status(500).send(err)
             } 
-            var idUnitsOrSubnit = data
+         
+            var idUnitsOrSubnit = value
             var emit = 'update-status-disposisi-' + field
     
             req.app.io.emit(emit, { message : 'sukses', idUnitOrSubnit: idUnitsOrSubnit }) 
@@ -520,9 +521,9 @@ module.exports = {
                 res.status(500).send(err)
             } 
             var idUnitsOrSubnit = data
-            var emit = 'update-status-disposisi-' + field
+            var emit = 'update-status-disposisi-b' + field
             
-            req.app.io.emit('update-status-disposisi-b-' + field, { message : 'sukses',  idUnitOrSubnit: idUnitsOrSubnit }) 
+            req.app.io.emit(emit, { message : 'sukses',  idUnitOrSubnit: idUnitsOrSubnit }) 
             res.status(200).send({ message: 'unit changed' })
         })
     },
