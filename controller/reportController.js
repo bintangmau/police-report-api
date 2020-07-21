@@ -94,29 +94,30 @@ module.exports = {
             tim,
             mengetahui,
             yangMenerimaLaporan,
-            tindakanYangDiambil,
+            tindakanYangDiAmbil,
             tindakPidanaDanPasal,
             barangBukti,
             status
         } = req.body
-      
+       
         const sql = `INSERT INTO reports.b_report (
             "unitMengetahui", "pangkatYangMenerimaLaporan", "nrpYangMenerimaLaporan", "pangkatMengetahui", "nrpMengetahui", "nomorLaporanPolisi", pelapor,
             "tempatLahir", "tanggalLahir", "jenisKelamin", "wargaNegara", agama, pekerjaan, alamat, "provinsiPelapor", "kotaPelapor", "kecamatanPelapor", 
             "kelurahanPelapor", "nomorTelpon", "waktuKejadian", "waktuKejadianJam", "tempatKejadian", "provinsiKejadian", "kotaKejadian", "kecamatanKejadian",
-            "kelurahanKejadian", "apaYangTerjadi", terlapor, korban, saksi, "waktuDilaporkan", "waktuDilaporkanJam", "uraianSingkatKejadian", unit, submit, tim,
-            mengetahui, "yangMenerimaLaporan", "tindakanYangDiambil", "tindakPidanaDanPasal", "barangBukti", status
+            "kelurahanKejadian", "apaYangTerjadi", terlapor, korban, saksi, "waktuDilaporkan", "waktuDilaporkanJam", "uraianSingkatKejadian", unit, subnit, tim,
+            mengetahui, "yangMenerimaLaporan", "tindakanYangDiambil", "tindakPidanaDanPasal", "barangBukti", "statusReport"
         ) VALUES (
             '${unitMengetahui}', '${pangkatyangMenerimaLaporan}', '${NRPyangMenerimaLaporan}', '${pangkatMengetahui}', '${NRPMengetahui}', '${nomorLaporanPolisi}', 
             '${pelapor}', '${tempatLahir}', '${tanggalLahir}', '${jenisKelamin}', '${wargaNegara}', '${agama}', '${pekerjaan}', '${alamat}', '${provinsiPelapor}', 
             '${kotaPelapor}', '${kecamataPelapor}', '${kelurahanPelapor}', '${nomorTelpon}', '${waktuKejadian}', '${waktuKejadianJam}', '${tempatKejadian}', '${provinsiKejadian}', 
             '${kotaKejadian}', '${kecamatanKejadian}', '${kelurahanKejadian}', '${apaYangTerjadi}', '{${terlapor}}', '{${korban}}', '{${saksi}}', '${waktuDilaporkan}', 
-            '${waktuDilaporkanJam}', '${uraianSingkatKejadian}', '${unit}', '${submit}', '${tim}', '${mengetahui}', '${yangMenerimaLaporan}', '{${tindakanYangDiambil}}', 
-            '{${tindakPidanaDanPasal}}', '{${barangBukti}}', '${status}' 
+            '${waktuDilaporkanJam}', '${uraianSingkatKejadian}', '${unit}', '${submit}', '${tim}', '${mengetahui}', '${yangMenerimaLaporan}', '{${tindakanYangDiAmbil}}', 
+            '{${tindakPidanaDanPasal}}', '{${barangBukti}}', 0 
         );`
-
+            console.log(sql)
         db.query(sql, (err, results) => {
             if(err) {
+                console.log(err)
                 res.status(500).send(err)
             } 
             req.app.io.emit('input-report-b' , { message : 'sukses' }) 
@@ -174,17 +175,52 @@ module.exports = {
         })
     },
     getDataReportB: (req, res) => {
-        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, unit, submit, status
-                    FROM reports.b_report ORDER BY "waktuDilaporkan" DESC;`
+        const {
+            id, jabatan, unit, idUnit, idSubnit
+        } = req.logedUser
+    
+        let newQuery = ``
+ 
+        if(jabatan === "KANIT") {
+            newQuery = `WHERE r.unit = ${idUnit}`
+        } else if(jabatan === 'KASUBNIT') {
+            newQuery = `WHERE r.unit = ${idUnit} AND r.subnit = ${idSubnit}`
+        } 
 
-        // `LIMIT ${req.body.limit} OFFSET ${req.body.offset} ;`
-                    
+        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, u.unit, status, s.subnit 
+                    FROM reports.b_report r
+                    JOIN "public".unit u
+                    ON r.unit = u."idUnit"
+                    JOIN "public".subnit s
+                    ON r.subnit = s."idSubnit"
+                    ${newQuery}
+                    ORDER BY "waktuDilaporkan" DESC;`
+    
+        // `LIMIT ${req.body.limit} OFFSET ${req.body.offset};`
+        console.log(sql)
         db.query(sql, (err, results) => {
             if(err) {
                 res.status(500).send(err)
             } 
 
-            const data = results.rows
+            var data = []
+        
+            if(jabatan === 'PENYIDIK') {
+                results.rows.forEach((val) => {
+                    var idPenyidik = 0
+                    if(!val.penyidik) {
+                        val.penyidik = []
+                    }
+                    val.penyidik.forEach((el) => {
+                        if(el == id) {
+                            data.push(val)
+                        }
+                    })
+                })
+            } else {
+                data = results.rows
+            }
+       
             res.status(200).send(data)
         })
     },
@@ -192,22 +228,9 @@ module.exports = {
         const {
             jabatan, subnit, idUnit
         } = req.logedUser
-        console.log(req.logedUser)
+     
         let sql1 = ""
-        let dbField = `kanit, 
-                        subnit, 
-                        penyidik,
-                        "nomorLaporanPolisi",
-                        "reportType", 
-                        "waktuDilaporkan", 
-                        "statusLaporan",
-                        pelapor,
-                        "tindakPidanaAtauPasal",
-                        "tempatKejadian",
-                        "waktuKejadian",
-                        "uraianSingkatKejadian",
-                        "unit"`
-
+    
         if(jabatan === 'WAKASAT') {
             sql1 = `SELECT id, nama, p.jabatan, u.unit, pr.unit AS "idUnit"
                     FROM "humanResource".personil pr
@@ -238,15 +261,13 @@ module.exports = {
                     JOIN "public".subnit s
                     ON pr.submit = s."idSubnit"
                     WHERE j.jabatan = 'PENYIDIK' AND s.subnit = '${subnit}';`
-        } else if(jabatan === 'PENYIDIK') {
-            dbField = "*"
-        }
+        } 
 
         const sql = `SELECT *
             FROM reports.a_report WHERE id = ${req.params.id};
 
             ${sql1}`
-      
+        console.log(sql)
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
@@ -269,27 +290,68 @@ module.exports = {
         })
     },
     getReportBDetails: (req, res) => {
-        const sql = ` SELECT kanit, 
-                    kasubmit, 
-                    penyidik,
-                    "nomorLaporanPolisi",
-                    "reportType", 
-                    "waktuDilaporkan", 
-                    "statusLaporan",
-                    pelapor,
-                    terlapor,
-                    "tindakPidanaDanPasal",
-                    "tempatKejadian",
-                    "waktuKejadian",
-                    "uraianSingkatKejadian"
-                FROM reports.b_report WHERE id = ${req.params.id};`
+        const {
+            jabatan, subnit, idUnit
+        } = req.logedUser
+       
+        let sql1 = ""
+      
+        if(jabatan === 'WAKASAT') {
+            sql1 = `SELECT id, nama, p.jabatan, u.unit, pr.unit AS "idUnit"
+                    FROM "humanResource".personil pr
+                    JOIN "public".jabatan p
+                    ON pr.jabatan = p."idJabatan"
+                    JOIN "public".unit u
+                    ON pr.unit = u."idUnit"
+                    WHERE p.jabatan = 'KANIT';`
+        } else if(jabatan === 'KANIT') {
+            sql1 = `SELECT id, nama, p.jabatan, u.unit, pr.unit AS "idUnit", s.subnit AS submit, pr.submit AS "idSubmit"
+                    FROM "humanResource".personil pr
+                    JOIN "public".jabatan p
+                    ON pr.jabatan = p."idJabatan"
+                    JOIN "public".unit u
+                    ON pr.unit = u."idUnit"
+                    JOIN "public".subnit s
+                    ON pr.submit = s."idSubnit"
+                    WHERE p.jabatan = 'KASUBNIT' AND pr.unit = ${idUnit};`
+        } else if (jabatan === "KASUBNIT" ) {
+            sql1 = `SELECT id, nama, j.jabatan, p.pangkat, u.unit, pr.unit AS idUnit, s.subnit AS submit, pr.submit AS idSubmit
+                    FROM "humanResource".personil pr
+                    JOIN "public".jabatan j
+                    ON pr.jabatan = j."idJabatan"
+                    JOIN "public".pangkat p
+                    ON pr.pangkat = p."idPangkat"
+                    JOIN "public".unit u
+                    ON pr.unit = u."idUnit"
+                    JOIN "public".subnit s
+                    ON pr.submit = s."idSubnit"
+                    WHERE j.jabatan = 'PENYIDIK' AND s.subnit = '${subnit}';`
+        } 
 
+        const sql = `SELECT *
+            FROM reports.b_report WHERE id = ${req.params.id};
+
+            ${sql1}`
+     
         db.query(sql, (err, results) => {
             if(err) {
+                console.log(err)
                 res.status(500).send(err)
             } 
-          
-            res.status(200).send(results.rows[0])
+            var objData = {}
+            if(jabatan === 'PENYIDIK') {
+                objData= {
+                    dataLaporan: results.rows[0]
+                }
+            } else {
+                objData = {
+                    dataLaporan: results[0].rows[0],
+                    dataMember: results[1].rows,
+                    jabatan 
+                }
+            }
+           
+            res.status(200).send(objData)
         })
     },
     searchReportA: (req, res) => {
@@ -334,6 +396,7 @@ module.exports = {
         const {
             id, nama, jabatan, pangkat, unit, subnit
         } = req.logedUser
+        
 
         const sqlDetails = `SELECT kanit, 
                             kasubmit, 
@@ -402,7 +465,7 @@ module.exports = {
             data = `{${value}}`
             statusReport = 3
         }
-      
+        
         const sql = `UPDATE "reports".a_report
                     SET ${field} = '${data}', "statusReport" = ${statusReport}
                     WHERE "id" = ${idReport};`
@@ -412,8 +475,54 @@ module.exports = {
                 console.log(err)
                 res.status(500).send(err)
             } 
+            var idUnitsOrSubnit = data
+            var emit = 'update-status-disposisi-' + field
+    
+            req.app.io.emit(emit, { message : 'sukses', idUnitOrSubnit: idUnitsOrSubnit }) 
+            res.status(200).send({ message: 'unit changed' })
+        })
+    },
+    updateReportStatusDisposisiB: (req, res) => {
+        const {
+            jabatan
+          } = req.logedUser
+          
+        const {
+            value,
+            idReport
+        } = req.body
 
-            req.app.io.emit('input-report-a' , { message : 'sukses' }) 
+          let field = ""
+          var data = ''
+          var statusReport = 0
+  
+          if(jabatan === 'WAKASAT') {
+              field = "unit"
+              data = value
+              statusReport = 1
+          } else if(jabatan === 'KANIT') {
+             field = "subnit"
+             data = value
+             statusReport = 2
+          } else if (jabatan === "KASUBNIT" ) {
+              field = "penyidik"
+              data = `{${value}}`
+              statusReport = 3
+          }
+
+          const sql = `UPDATE "reports".b_report
+          SET ${field} = '${data}', "statusReport" = ${statusReport}
+          WHERE "id" = ${idReport};`
+
+        db.query(sql, (err, results) => {
+            if(err) {
+                console.log(err)
+                res.status(500).send(err)
+            } 
+            var idUnitsOrSubnit = data
+            var emit = 'update-status-disposisi-' + field
+            
+            req.app.io.emit('update-status-disposisi-b-' + field, { message : 'sukses',  idUnitOrSubnit: idUnitsOrSubnit }) 
             res.status(200).send({ message: 'unit changed' })
         })
     },
@@ -426,6 +535,24 @@ module.exports = {
         SET "perkembanganLaporan" = '${value}'
         WHERE id = ${idLaporan};`
 
+        db.query(sql, (err, results) => {
+            if(err) {
+                console.log(err)
+                res.status(500).send(err)
+            } 
+
+            res.status(200).send({ message: "Perkembangan berhasil diupdate" })
+        })
+    },
+    updatePerkembanganLaporanB: (req, res) => {
+        const {
+            value, idLaporan
+        } = req.body
+  
+        const sql = `UPDATE reports.b_report 
+        SET "perkembanganLaporan" = '${value}'
+        WHERE id = ${idLaporan};`
+        console.log(sql)
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
