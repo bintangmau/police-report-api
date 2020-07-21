@@ -33,11 +33,11 @@ module.exports = {
             unit,
             subnit
         } = req.body
-        
+    
         const sql = `INSERT INTO "reports"."a_report"
         ( "mengetahuiUnit", "nrpPelapor", "pangkatPelapor", "nomorLaporanPolisi", "waktuKejadian", "waktuKejadianJam", "tempatKejadian", "provinsi", "kota", 
             "kecamatan", kelurahan, "apaYangTerjadi", pelaku, korban, "waktuDilaporkan", "waktuDilaporkanJam", "tindakPidanaAtauPasal", sumir, namasaksi, 	
-            alamatsaksi,  "uraianSingkatKejadian", barangbukti, "tindakanYangDiambil", mengetahui, pelapor, nrp, pangkat, "statusReport"
+            alamatsaksi,  "uraianSingkatKejadian", barangbukti, "tindakanYangDiambil", mengetahui, pelapor, nrp, pangkat, "statusReport", "unit", "subnit"
         )
         VALUES (
             '${mengetahuiUnit}', '${NrpPelapor}', '${PangkatPelapor}', '${nomorLaporanPolisi}', '${waktuKejadian}', '${waktuKejadianJam}', '${tempatKejadian}', '${provinsi}',
@@ -47,6 +47,7 @@ module.exports = {
 
         db.query(sql, (err, results) => {
             if(err) {
+                console.log(err)
                 res.status(500).send(err)
             } 
             req.app.io.emit('input-report-a' , { message : 'sukses' }) 
@@ -153,10 +154,13 @@ module.exports = {
             } 
 
             var data = []
-          
+        
             if(jabatan === 'PENYIDIK') {
                 results.rows.forEach((val) => {
                     var idPenyidik = 0
+                    if(!val.penyidik) {
+                        val.penyidik = []
+                    }
                     val.penyidik.forEach((el) => {
                         if(el == id) {
                             data.push(val)
@@ -189,7 +193,7 @@ module.exports = {
         const {
             jabatan, subnit, idUnit
         } = req.logedUser
-     
+    
         let sql1 = ""
         let dbField = `kanit, 
                         subnit, 
@@ -203,7 +207,7 @@ module.exports = {
                         "tempatKejadian",
                         "waktuKejadian",
                         "uraianSingkatKejadian",
-                        unit"`
+                        "unit"`
 
         if(jabatan === 'WAKASAT') {
             dbField = ``
@@ -243,8 +247,7 @@ module.exports = {
         const sql = `SELECT ${dbField}
             FROM reports.a_report WHERE id = ${req.params.id};
 
-            ${sql1} ;`
-      
+            ${sql1}`
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
