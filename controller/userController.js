@@ -21,7 +21,7 @@ module.exports = {
                     JOIN "public".subnit s
                     ON pr.submit = s."idSubnit"
                     WHERE nrp = '${req.body.nrp}' AND password = '${passwordEnc}';`
-   
+    
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
@@ -44,7 +44,7 @@ module.exports = {
                 token: tokens,
                 message: message
             }
-           
+        
             res.status(200).send(response)
         })
     },

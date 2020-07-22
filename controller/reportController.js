@@ -114,7 +114,7 @@ module.exports = {
             '${waktuDilaporkanJam}', '${uraianSingkatKejadian}', '${unit}', '${submit}', '${tim}', '${mengetahui}', '${yangMenerimaLaporan}', '{${tindakanYangDiAmbil}}', 
             '{${tindakPidanaDanPasal}}', '{${barangBukti}}', 0 
         );`
-            console.log(sql)
+
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
@@ -197,7 +197,7 @@ module.exports = {
                     ORDER BY "waktuDilaporkan" DESC;`
     
         // `LIMIT ${req.body.limit} OFFSET ${req.body.offset};`
-        console.log(sql)
+       
         db.query(sql, (err, results) => {
             if(err) {
                 res.status(500).send(err)
@@ -220,7 +220,7 @@ module.exports = {
             } else {
                 data = results.rows
             }
-       
+         
             res.status(200).send(data)
         })
     },
@@ -478,7 +478,7 @@ module.exports = {
          
             var idUnitsOrSubnit = value
             var emit = 'update-status-disposisi-' + field
-    
+            
             req.app.io.emit(emit, { message : 'sukses', idUnitOrSubnit: idUnitsOrSubnit }) 
             res.status(200).send({ message: 'unit changed' })
         })
@@ -510,7 +510,7 @@ module.exports = {
               data = `{${value}}`
               statusReport = 3
           }
-
+       
           const sql = `UPDATE "reports".b_report
           SET ${field} = '${data}', "statusReport" = ${statusReport}
           WHERE "id" = ${idReport};`
@@ -520,9 +520,9 @@ module.exports = {
                 console.log(err)
                 res.status(500).send(err)
             } 
-            var idUnitsOrSubnit = data
-            var emit = 'update-status-disposisi-b' + field
-            
+            var idUnitsOrSubnit = value
+            var emit = 'update-status-disposisi-b-' + field
+          
             req.app.io.emit(emit, { message : 'sukses',  idUnitOrSubnit: idUnitsOrSubnit }) 
             res.status(200).send({ message: 'unit changed' })
         })
@@ -553,7 +553,7 @@ module.exports = {
         const sql = `UPDATE reports.b_report 
         SET "perkembanganLaporan" = '${value}'
         WHERE id = ${idLaporan};`
-        console.log(sql)
+   
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
