@@ -94,7 +94,7 @@ module.exports = {
             tim,
             mengetahui,
             yangMenerimaLaporan,
-            tindakanYangDiAmbil,
+            tindakanYangDiambil,
             tindakPidanaDanPasal,
             barangBukti,
             status
@@ -111,10 +111,11 @@ module.exports = {
             '${pelapor}', '${tempatLahir}', '${tanggalLahir}', '${jenisKelamin}', '${wargaNegara}', '${agama}', '${pekerjaan}', '${alamat}', '${provinsiPelapor}', 
             '${kotaPelapor}', '${kecamataPelapor}', '${kelurahanPelapor}', '${nomorTelpon}', '${waktuKejadian}', '${waktuKejadianJam}', '${tempatKejadian}', '${provinsiKejadian}', 
             '${kotaKejadian}', '${kecamatanKejadian}', '${kelurahanKejadian}', '${apaYangTerjadi}', '{${terlapor}}', '{${korban}}', '{${saksi}}', '${waktuDilaporkan}', 
-            '${waktuDilaporkanJam}', '${uraianSingkatKejadian}', '${unit}', '${submit}', '${tim}', '${mengetahui}', '${yangMenerimaLaporan}', '{${tindakanYangDiAmbil}}', 
+            '${waktuDilaporkanJam}', '${uraianSingkatKejadian}', '0', '0', '0', '${mengetahui}', '${yangMenerimaLaporan}', '{${tindakanYangDiambil}}', 
             '{${tindakPidanaDanPasal}}', '{${barangBukti}}', 0 
         );`
-
+        console.log(req.body)
+        console.log(sql)
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
@@ -147,7 +148,7 @@ module.exports = {
                     ORDER BY "waktuDilaporkan" DESC;`
     
         // `LIMIT ${req.body.limit} OFFSET ${req.body.offset};`
-     
+        console.log(sql)
         db.query(sql, (err, results) => {
             if(err) {
                 res.status(500).send(err)
@@ -262,12 +263,28 @@ module.exports = {
                     ON pr.submit = s."idSubnit"
                     WHERE j.jabatan = 'PENYIDIK' AND s.subnit = '${subnit}';`
         } 
-
-        const sql = `SELECT *
-            FROM reports.a_report WHERE id = ${req.params.id};
-
-            ${sql1}`
-      
+        const sql = `SELECT *, p.pangkat AS "PangkatMengetahui", pp.pangkat AS "PangkatYangMelapor",  uu.unit AS "unitMengetahui", j.jabatan AS "JabatanMengetahui", jj.jabatan AS "JabatanPelapor", u.unit AS "UnitYangMengetahui"
+                    FROM reports.a_report r
+                    JOIN "public".pangkat p
+                    ON r.pangkat = p."idPangkat"
+                    JOIN "public".pangkat pp 
+                    ON r."pangkatPelapor" = pp."idPangkat"
+                    JOIN "public".unit uu
+                    ON r."mengetahuiUnit" = uu."idUnit"
+                    JOIN "humanResource".personil pr
+                    ON r.nrp = pr.nrp
+                    JOIN "public".jabatan j
+                    ON pr.jabatan = j."idJabatan"
+                    JOIN "humanResource".personil prr
+                    ON r."nrpPelapor" = prr.nrp
+                    JOIN "public".jabatan jj
+                    ON prr.jabatan = jj."idJabatan"
+                    JOIN "public".unit u
+                    ON r."mengetahuiUnit" = u."idUnit"
+                    WHERE r.id = ${req.params.id};
+                    
+                    ${sql1}`
+       
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
@@ -285,7 +302,7 @@ module.exports = {
                     jabatan 
                 }
             }
-     
+          
             res.status(200).send(objData)
         })
     },
@@ -328,11 +345,28 @@ module.exports = {
                     WHERE j.jabatan = 'PENYIDIK' AND s.subnit = '${subnit}';`
         } 
 
-        const sql = `SELECT *
-            FROM reports.b_report WHERE id = ${req.params.id};
+        const sql = `SELECT * ,p.pangkat AS "PangkatMengetahui", pp.pangkat AS "PangkatMenerimaLaporan",  
+                    u.unit AS "UnitYangMengetahui", j.jabatan AS "JabatanMengetahui", jj.jabatan AS "JabatanPenerimaLaporan", 
+                    u.unit AS "UnitYangMengetahui"
+                    FROM reports.b_report r
+                    JOIN "public".pangkat p
+                    ON r."pangkatMengetahui" = p."idPangkat"
+                    JOIN "public".pangkat pp 
+                    ON r."pangkatYangMenerimaLaporan" = pp."idPangkat"
+                    JOIN "humanResource".personil pr
+                    ON r."nrpMengetahui" = pr.nrp
+                    JOIN "public".jabatan j
+                    ON pr.jabatan = j."idJabatan"
+                    JOIN "humanResource".personil prr
+                    ON r."nrpYangMenerimaLaporan" = prr.nrp
+                    JOIN "public".jabatan jj
+                    ON prr.jabatan = jj."idJabatan"
+                    JOIN "public".unit u
+                    ON r."unitMengetahui" = u."idUnit"
+                    WHERE r.id = ${req.params.id};
 
             ${sql1}`
-     
+        
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
@@ -355,15 +389,29 @@ module.exports = {
         })
     },
     searchReportA: (req, res) => {
-        const sql = `SELECT id, "nomorLaporanPolisi", "uraianSingkatKejadian", "apaYangTerjadi"
-                    FROM reports.a_report 
+        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, u.unit, status, s.subnit 
+                    FROM reports.a_report r
+                    JOIN "public".unit u
+                    ON r.unit = u."idUnit"
+                    JOIN "public".subnit s
+                    ON r.subnit = s."idSubnit"
                     WHERE LOWER("apaYangTerjadi") LIKE LOWER('%${req.query.keyword}%')
                     OR LOWER("nomorLaporanPolisi") LIKE LOWER('%${req.query.keyword}%')
                     OR LOWER("tempatKejadian") LIKE LOWER('%${req.query.keyword}%')
                     OR LOWER(pelapor) LIKE LOWER('%${req.query.keyword}%')
                     OR LOWER("uraianSingkatKejadian") LIKE LOWER('%${req.query.keyword}%')
-                    OR LOWER("apaYangTerjadi") LIKE LOWER('%${req.query.keyword}%');`
-
+                    OR LOWER("apaYangTerjadi") LIKE LOWER('%${req.query.keyword}%')
+                    ORDER BY "waktuDilaporkan" DESC;`
+        
+        // const sql = `SELECT id, "nomorLaporanPolisi", "uraianSingkatKejadian", "apaYangTerjadi"
+        //             FROM reports.a_report 
+        //             WHERE LOWER("apaYangTerjadi") LIKE LOWER('%${req.query.keyword}%')
+        //             OR LOWER("nomorLaporanPolisi") LIKE LOWER('%${req.query.keyword}%')
+        //             OR LOWER("tempatKejadian") LIKE LOWER('%${req.query.keyword}%')
+        //             OR LOWER(pelapor) LIKE LOWER('%${req.query.keyword}%')
+        //             OR LOWER("uraianSingkatKejadian") LIKE LOWER('%${req.query.keyword}%')
+        //             OR LOWER("apaYangTerjadi") LIKE LOWER('%${req.query.keyword}%');`
+        console.log(sql)
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
