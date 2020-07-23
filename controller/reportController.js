@@ -148,7 +148,7 @@ module.exports = {
                     ORDER BY "waktuDilaporkan" DESC;`
     
         // `LIMIT ${req.body.limit} OFFSET ${req.body.offset};`
-        console.log(sql)
+       
         db.query(sql, (err, results) => {
             if(err) {
                 res.status(500).send(err)
@@ -158,7 +158,6 @@ module.exports = {
         
             if(jabatan === 'PENYIDIK') {
                 results.rows.forEach((val) => {
-                    var idPenyidik = 0
                     if(!val.penyidik) {
                         val.penyidik = []
                     }
@@ -389,7 +388,11 @@ module.exports = {
         })
     },
     searchReportA: (req, res) => {
-        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, u.unit, status, s.subnit 
+        const {
+            jabatan, idUnit, idSubnit, id
+        } = req.logedUser
+       
+        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, u.unit, status, s.subnit , r.unit AS "idUnit", r.subnit AS "idSubnit"
                     FROM reports.a_report r
                     JOIN "public".unit u
                     ON r.unit = u."idUnit"
@@ -402,42 +405,100 @@ module.exports = {
                     OR LOWER("uraianSingkatKejadian") LIKE LOWER('%${req.query.keyword}%')
                     OR LOWER("apaYangTerjadi") LIKE LOWER('%${req.query.keyword}%')
                     ORDER BY "waktuDilaporkan" DESC;`
-        
-        // const sql = `SELECT id, "nomorLaporanPolisi", "uraianSingkatKejadian", "apaYangTerjadi"
-        //             FROM reports.a_report 
-        //             WHERE LOWER("apaYangTerjadi") LIKE LOWER('%${req.query.keyword}%')
-        //             OR LOWER("nomorLaporanPolisi") LIKE LOWER('%${req.query.keyword}%')
-        //             OR LOWER("tempatKejadian") LIKE LOWER('%${req.query.keyword}%')
-        //             OR LOWER(pelapor) LIKE LOWER('%${req.query.keyword}%')
-        //             OR LOWER("uraianSingkatKejadian") LIKE LOWER('%${req.query.keyword}%')
-        //             OR LOWER("apaYangTerjadi") LIKE LOWER('%${req.query.keyword}%');`
-        console.log(sql)
+
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
                 res.status(500).send(err)
             } 
-
-            res.status(200).send(results.rows)
+           
+            var data = []
+            var arr = results.rows
+            if(jabatan === "KANIT") {
+                arr.forEach((val) => {
+                    if(val.idUnit === idUnit) {
+                        data.push(val)
+                    }
+                })
+            } else if(jabatan === "KASUBNIT") {
+                arr.forEach((val) => {
+                    if(val.idUnit === idUnit && val.idSubnit === idSubnit) {
+                        data.push(val)
+                    }
+                })
+            } else if(jabatan === "WAKASAT") {
+                data = arr
+            } else if(jabatan === "PENYIDIK") {
+                arr.forEach((val) => {
+                   if(!val.penyidik) {
+                      data = []
+                      val.penyidik = []
+                   } else {
+                       val.penyidik.forEach((el) => {
+                           data.push(val)
+                        })
+                    }
+                })
+            }
+                
+            res.status(200).send(data)
         })
     },
     searchReportB: (req, res) => {
-        const sql = `SELECT id, "nomorLaporanPolisi", "uraianSingkatKejadian", "apaYangTerjadi"
-                    FROM reports.b_report 
+        const {
+            jabatan, idUnit, idSubnit, id
+        } = req.logedUser
+       
+        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, u.unit, status, s.subnit , r.unit AS "idUnit", r.subnit AS "idSubnit"
+                    FROM reports.b_report r
+                    JOIN "public".unit u
+                    ON r.unit = u."idUnit"
+                    JOIN "public".subnit s
+                    ON r.subnit = s."idSubnit"
                     WHERE LOWER("apaYangTerjadi") LIKE LOWER('%${req.query.keyword}%')
                     OR LOWER("nomorLaporanPolisi") LIKE LOWER('%${req.query.keyword}%')
                     OR LOWER("tempatKejadian") LIKE LOWER('%${req.query.keyword}%')
                     OR LOWER(pelapor) LIKE LOWER('%${req.query.keyword}%')
                     OR LOWER("uraianSingkatKejadian") LIKE LOWER('%${req.query.keyword}%')
-                    OR LOWER("apaYangTerjadi") LIKE LOWER('%${req.query.keyword}%');`
+                    OR LOWER("apaYangTerjadi") LIKE LOWER('%${req.query.keyword}%')
+                    ORDER BY "waktuDilaporkan" DESC;`
 
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
                 res.status(500).send(err)
             } 
-
-            res.status(200).send(results.rows)
+           
+            var data = []
+            var arr = results.rows
+            if(jabatan === "KANIT") {
+                arr.forEach((val) => {
+                    if(val.idUnit === idUnit) {
+                        data.push(val)
+                    }
+                })
+            } else if(jabatan === "KASUBNIT") {
+                arr.forEach((val) => {
+                    if(val.idUnit === idUnit && val.idSubnit === idSubnit) {
+                        data.push(val)
+                    }
+                })
+            } else if(jabatan === "WAKASAT") {
+                data = arr
+            } else if(jabatan === "PENYIDIK") {
+                arr.forEach((val) => {
+                   if(!val.penyidik) {
+                      data = []
+                      val.penyidik = []
+                   } else {
+                       val.penyidik.forEach((el) => {
+                           data.push(val)
+                        })
+                    }
+                })
+            }
+                
+            res.status(200).send(data)
         })
     },
     getDataDisposisiDetails: (req, res) => {
