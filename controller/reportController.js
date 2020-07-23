@@ -134,9 +134,9 @@ module.exports = {
  
         if(jabatan === "KANIT") {
             newQuery = `WHERE r.unit = ${idUnit}`
-        } else if(jabatan === 'KASUBNIT') {
+        } else if(jabatan === 'KASUBNIT' || jabatan === "PENYIDIK") {
             newQuery = `WHERE r.unit = ${idUnit} AND r.subnit = ${idSubnit}`
-        } 
+        }
 
         const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, u.unit, "statusReport", s.subnit 
                     FROM reports.a_report r
@@ -183,7 +183,7 @@ module.exports = {
  
         if(jabatan === "KANIT") {
             newQuery = `WHERE r.unit = ${idUnit}`
-        } else if(jabatan === 'KASUBNIT') {
+        } else if(jabatan === 'KASUBNIT' || jabatan === "PENYIDIK") {
             newQuery = `WHERE r.unit = ${idUnit} AND r.subnit = ${idSubnit}`
         } 
 
@@ -226,7 +226,7 @@ module.exports = {
     },
     getReportADetails: (req, res) => {
         const {
-            jabatan, subnit, idUnit
+            jabatan, subnit, idUnit, idSubnit
         } = req.logedUser
      
         let sql1 = ""
@@ -260,7 +260,7 @@ module.exports = {
                     ON pr.unit = u."idUnit"
                     JOIN "public".subnit s
                     ON pr.submit = s."idSubnit"
-                    WHERE j.jabatan = 'PENYIDIK' AND s.subnit = '${subnit}';`
+                    WHERE j.jabatan = 'PENYIDIK' AND pr.unit = '${idUnit}' AND pr.submit = '${idSubnit}';`
         } 
         const sql = `SELECT r.*, p.pangkat AS "PangkatMengetahui", pp.pangkat AS "PangkatYangMelapor",  
                     uu.unit AS "unitMengetahui", j.jabatan AS "JabatanMengetahui", jj.jabatan AS "JabatanPelapor",
@@ -302,7 +302,7 @@ module.exports = {
                             ) r
                             JOIN "humanResource".personil personil
                     ON personil."id" = r."id_penyidik";`
-    
+            
         db.query(sql, (err, results) => {
             if(err) {
                 res.status(500).send(err)
