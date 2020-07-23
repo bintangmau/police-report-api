@@ -138,7 +138,7 @@ module.exports = {
             newQuery = `WHERE r.unit = ${idUnit} AND r.subnit = ${idSubnit}`
         } 
 
-        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, u.unit, status, s.subnit 
+        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, u.unit, "statusReport", s.subnit 
                     FROM reports.a_report r
                     JOIN "public".unit u
                     ON r.unit = u."idUnit"
@@ -187,7 +187,7 @@ module.exports = {
             newQuery = `WHERE r.unit = ${idUnit} AND r.subnit = ${idSubnit}`
         } 
 
-        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, u.unit, status, s.subnit 
+        const sql = `SELECT id, "waktuDilaporkan", "nomorLaporanPolisi", penyidik, u.unit, "statusReport", s.subnit 
                     FROM reports.b_report r
                     JOIN "public".unit u
                     ON r.unit = u."idUnit"
@@ -262,11 +262,13 @@ module.exports = {
                     ON pr.submit = s."idSubnit"
                     WHERE j.jabatan = 'PENYIDIK' AND s.subnit = '${subnit}';`
         } 
-        const sql = `SELECT *, p.pangkat AS "PangkatMengetahui", pp.pangkat AS "PangkatYangMelapor",  uu.unit AS "unitMengetahui", j.jabatan AS "JabatanMengetahui", jj.jabatan AS "JabatanPelapor", u.unit AS "UnitYangMengetahui"
+        const sql = `SELECT r.*, p.pangkat AS "PangkatMengetahui", pp.pangkat AS "PangkatYangMelapor",  
+                    uu.unit AS "unitMengetahui", j.jabatan AS "JabatanMengetahui", jj.jabatan AS "JabatanPelapor",
+                    u.unit AS "UnitYangMenangani", s.subnit AS "SubnitYangMenangani"
                     FROM reports.a_report r
                     JOIN "public".pangkat p
                     ON r.pangkat = p."idPangkat"
-                    JOIN "public".pangkat pp 
+                    JOIN "public".pangkat pp
                     ON r."pangkatPelapor" = pp."idPangkat"
                     JOIN "public".unit uu
                     ON r."mengetahuiUnit" = uu."idUnit"
@@ -279,29 +281,63 @@ module.exports = {
                     JOIN "public".jabatan jj
                     ON prr.jabatan = jj."idJabatan"
                     JOIN "public".unit u
-                    ON r."mengetahuiUnit" = u."idUnit"
+                    ON r.unit = u."idUnit"
+                    JOIN "public".subnit s
+                    ON r.subnit = s."idSubnit"
                     WHERE r.id = ${req.params.id};
                     
-                    ${sql1}`
-       
+                    ${sql1}
+                    
+                    SELECT
+                    personil."id" ,
+                    personil.nama AS nama_penyidik
+                    FROM
+                            (
+                            SELECT UNNEST
+                                    ( penyidik :: INT [] ) AS id_penyidik
+                            FROM
+                                    reports.a_report r 
+                            WHERE
+                                    r."id" = ${req.params.id}
+                            ) r
+                            JOIN "humanResource".personil personil
+                    ON personil."id" = r."id_penyidik";`
+    
         db.query(sql, (err, results) => {
             if(err) {
-                console.log(err)
                 res.status(500).send(err)
             } 
+
+            var status = "" 
+            var statusLaporan = results[0].rows[0].statusReport
+            if(statusLaporan === '0') {
+                status = "Menunggu Disposisi Dari Wakasat"
+            } else if(statusLaporan === "1") {
+                status = "Menunggu Disposisi Dari Kanit"
+            } else if(statusLaporan === "2") {
+                status = "Menunggu Disposisi Dari Kasubnit"
+            } else if(statusLaporan === "3") {
+                status = "Menunggu Laporan Dari Penyidik"
+            }
+
             var objData = {}
+    
             if(jabatan === 'PENYIDIK') {
                 objData= {
-                    dataLaporan: results.rows[0]
+                    dataLaporan: results[0].rows[0],
+                    dataPenyidik: results[1].rows,
+                    status
                 }
             } else {
                 objData = {
                     dataLaporan: results[0].rows[0],
                     dataMember: results[1].rows,
-                    jabatan 
+                    dataPenyidik: results[2].rows,
+                    jabatan,
+                    status
                 }
             }
-          
+           
             res.status(200).send(objData)
         })
     },
@@ -344,14 +380,16 @@ module.exports = {
                     WHERE j.jabatan = 'PENYIDIK' AND s.subnit = '${subnit}';`
         } 
 
-        const sql = `SELECT * ,p.pangkat AS "PangkatMengetahui", pp.pangkat AS "PangkatMenerimaLaporan",  
-                    u.unit AS "UnitYangMengetahui", j.jabatan AS "JabatanMengetahui", jj.jabatan AS "JabatanPenerimaLaporan", 
-                    u.unit AS "UnitYangMengetahui"
+        const sql = `SELECT r.*, p.pangkat AS "PangkatMengetahui", pp.pangkat AS "PangkatYangTerimaLaporan",  
+                    uu.unit AS "UnitYangMengetahui", j.jabatan AS "JabatanMengetahui", jj.jabatan AS "JabatanPenerimaLaporan",
+                    u.unit AS "UnitYangMenangani", s.subnit AS "SubnitYangMenangani"
                     FROM reports.b_report r
-                    JOIN "public".pangkat p
+                JOIN "public".pangkat p
                     ON r."pangkatMengetahui" = p."idPangkat"
-                    JOIN "public".pangkat pp 
+                    JOIN "public".pangkat pp
                     ON r."pangkatYangMenerimaLaporan" = pp."idPangkat"
+                    JOIN "public".unit uu
+                    ON r."unitMengetahui" = uu."idUnit"
                     JOIN "humanResource".personil pr
                     ON r."nrpMengetahui" = pr.nrp
                     JOIN "public".jabatan j
@@ -361,29 +399,62 @@ module.exports = {
                     JOIN "public".jabatan jj
                     ON prr.jabatan = jj."idJabatan"
                     JOIN "public".unit u
-                    ON r."unitMengetahui" = u."idUnit"
+                    ON r.unit = u."idUnit"
+                    JOIN "public".subnit s
+                    ON r.subnit = s."idSubnit"
                     WHERE r.id = ${req.params.id};
 
-            ${sql1}`
-        
+            ${sql1}
+            
+            SELECT
+            personil."id" ,
+            personil.nama AS nama_penyidik
+            FROM
+                    (
+                    SELECT UNNEST
+                            ( penyidik :: INT [] ) AS id_penyidik
+                    FROM
+                            reports.b_report r 
+                    WHERE
+                            r."id" = ${req.params.id}
+                    ) r
+                    JOIN "humanResource".personil personil
+            ON personil."id" = r."id_penyidik";`
+                        
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
                 res.status(500).send(err)
             } 
+            var status = "" 
+            var statusLaporan = results[0].rows[0].statusReport
+            if(statusLaporan === '0') {
+                status = "Menunggu Disposisi Dari Wakasat"
+            } else if(statusLaporan === "1") {
+                status = "Menunggu Disposisi Dari Kanit"
+            } else if(statusLaporan === "2") {
+                status = "Menunggu Disposisi Dari Kasubnit"
+            } else if(statusLaporan === "3") {
+                status = "Menunggu Laporan Dari Penyidik"
+            }
+
             var objData = {}
             if(jabatan === 'PENYIDIK') {
                 objData= {
-                    dataLaporan: results.rows[0]
+                    dataLaporan: results[0].rows[0],
+                    dataPenyidik: results[1].rows,
+                    status
                 }
             } else {
                 objData = {
                     dataLaporan: results[0].rows[0],
                     dataMember: results[1].rows,
-                    jabatan 
+                    dataPenyidik: results[2].rows,
+                    jabatan,
+                    status
                 }
             }
-           
+          
             res.status(200).send(objData)
         })
     },
@@ -561,6 +632,7 @@ module.exports = {
         var data = ''
         var statusReport = 0
 
+        
         if(jabatan === 'WAKASAT') {
             field = "unit"
             data = value
@@ -578,7 +650,7 @@ module.exports = {
         const sql = `UPDATE "reports".a_report
                     SET ${field} = '${data}', "statusReport" = ${statusReport}
                     WHERE "id" = ${idReport};`
-  
+ 
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
@@ -671,6 +743,17 @@ module.exports = {
 
             res.status(200).send({ message: "Perkembangan berhasil diupdate" })
         })
+    },
+    getListPenyidik: (req, res) => {
+       const sql = `SELECT penyidik FROM reports.a_report WHERE id = ${req.params.id};`
+
+       db.query(sql, (err, results) => {
+        if(err) {
+            res.status(500).send(err)
+        } 
+  
+        res.status(200).send(results.rows)
+    })
     }
 }
 

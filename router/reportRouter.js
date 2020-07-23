@@ -1,7 +1,7 @@
 const express = require('express')
 const { reportController } = require('../controller')
 const { authentication } = require('../middleware/auth')
-const { updateReportUnitDisposisi, updateReportStatusDisposisi } = require('../controller/reportController')
+const { updateReportUnitDisposisi, updateReportStatusDisposisi, getListPenyidik } = require('../controller/reportController')
 
 const router = express.Router()
 
@@ -18,5 +18,6 @@ router.post('/update-report-status-disposisi', authentication, updateReportStatu
 router.post('/update-report-status-disposisi-b', authentication, reportController.updateReportStatusDisposisiB)
 router.post('/update-perkembangan-laporan', authentication, reportController.updatePerkembanganLaporan)
 router.post('/update-perkembangan-laporan-b', authentication, reportController.updatePerkembanganLaporanB)
+router.get('/get-list-penyidik/:id', authentication, getListPenyidik)
 
 module.exports = router
