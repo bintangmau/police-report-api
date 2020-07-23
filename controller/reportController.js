@@ -114,8 +114,7 @@ module.exports = {
             '${waktuDilaporkanJam}', '${uraianSingkatKejadian}', '0', '0', '0', '${mengetahui}', '${yangMenerimaLaporan}', '{${tindakanYangDiambil}}', 
             '{${tindakPidanaDanPasal}}', '{${barangBukti}}', 0 
         );`
-        console.log(req.body)
-        console.log(sql)
+      
         db.query(sql, (err, results) => {
             if(err) {
                 console.log(err)
